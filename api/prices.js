@@ -38,19 +38,18 @@ export default async function handler(req, res) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: SYSTEM_PROMPT }]
-          },
           contents: [
             {
               role: "user",
-              parts: [{ text: prompt }]
+              parts: [
+                {
+                  text: SYSTEM_PROMPT + "\n\n" + prompt
+                }
+              ]
             }
           ],
-          tools: [{ google_search: {} }],
           generationConfig: {
-            temperature: 0.2,
-            responseMimeType: "application/json"
+            temperature: 0.2
           }
         })
       }
