@@ -24,12 +24,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const prompt = req.body?.prompt || "Get flight prices DXB to YYZ June 30 2026.";
+    const prompt =
+      req.body?.prompt ||
+      "Search for current one-way flight prices DXB to YYZ on June 30 2026. Check Emirates, Qatar Airways, Turkish Airlines, Air Canada, EgyptAir. I need 2 checked bags. Return JSON only.";
 
-    // ✅ Using gemini-1.5-flash-latest (sometimes more compatible) 
-    // ✅ Using v1beta which supports more features
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
       {
         method: "POST",
         headers: {
@@ -44,7 +44,10 @@ export default async function handler(req, res) {
                 }
               ]
             }
-          ]
+          ],
+          generationConfig: {
+            temperature: 0.7
+          }
         })
       }
     );
@@ -58,21 +61,31 @@ export default async function handler(req, res) {
       });
     }
 
-    const text = raw?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const text =
+      raw?.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text || "")
+        .join("")
+        .trim() || "";
 
     if (!text) {
-      return res.status(500).json({ error: "Empty response from Gemini" });
+      return res.status(500).json({
+        error: "Gemini returned an empty response",
+        details: raw
+      });
     }
 
-    // Clean JSON
     const cleaned = text.replace(/```json|```/g, "").trim();
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
-      return res.status(500).json({ error: "No JSON found in response", rawText: text });
+      return res.status(500).json({
+        error: "Could not parse JSON from Gemini response",
+        rawText: text
+      });
     }
 
-    return res.status(200).json(JSON.parse(jsonMatch[0]));
+    const parsed = JSON.parse(jsonMatch[0]);
+    return res.status(200).json(parsed);
   } catch (err) {
     return res.status(500).json({ error: err.message || "Proxy error" });
   }
