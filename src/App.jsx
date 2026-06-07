@@ -545,3 +545,16 @@ export default function FlightTracker() {
     </div>
   );
 }
+// ...existing code...
+const response = await fetch("/api/prices", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1500,
+    system: SYSTEM_PROMPT,
+    tools: [{ type: "web_search_20250305", name: "web_search" }],
+    messages: [{ role: "user", content: `Search for current one-way flight prices DXB to YYZ on June 30 2026. Check Emirates, Qatar Airways, Turkish Airlines, Air Canada, EgyptAir. I need 2 checked bags. Return JSON only.` }]
+  })
+});
+// ...existing code...
