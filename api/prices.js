@@ -30,13 +30,14 @@ export default async function handler(req, res) {
       req.body?.prompt ||
       "Search for current one-way flight prices DXB to YYZ on June 30 2026. Check Emirates, Qatar Airways, Turkish Airlines, Air Canada, EgyptAir. I need 2 checked bags. Return JSON only.";
 
-    // Using v1beta with the simplified body structure
+    // ✅ Using v1 API with key in header (most reliable combo)
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent`,
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "x-goog-api-key": key
         },
         body: JSON.stringify({
           contents: [
@@ -78,7 +79,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Clean any potential markdown and find the JSON object
     const cleaned = text.replace(/```json|```/g, "").trim();
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
 
